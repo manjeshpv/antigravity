@@ -19,7 +19,7 @@
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
+            max-width: 1000px;
             margin: auto;
         }
 
@@ -50,11 +50,6 @@
 
         th {
             background-color: #f8f9fa;
-            width: 50%;
-        }
-
-        th:last-child {
-            width: 20%;
         }
 
         td {
@@ -62,9 +57,22 @@
             font-weight: bold;
         }
 
+        td:first-child {
+            text-align: left;
+        }
+
         .total-row {
             background-color: #e8f5e9;
             font-size: 1.1em;
+        }
+
+        .personal-details {
+            margin-bottom: 1rem;
+            font-size: 1.1em;
+        }
+
+        .personal-details span {
+            margin-right: 15px;
         }
     </style>
 </head>
@@ -73,279 +81,176 @@
     <div class="container">
         <h3>Dashboard</h3>
         <div class="personal-details">
-            <span>Name: Manjesh</span>|
-            <span>Date of birth: 05 Feb 1989</span>
-            <span>Age: <span id="age"></span></span>
+            <span id="displayName">Name: --</span> |
+            <span id="displayDob">Date of birth: --</span>
+            <span>Age: <span id="age">--</span></span>
         </div>
 
         <div class="strategy"
             style="background: #e3f2fd; padding: 1rem; margin-top: 1rem; border-radius: 8px; border-left: 5px solid #2196f3; text-align: left;">
-            <h3 style="margin-top: 0; color: #1565c0;">Investment Strategy</h3>
+            <h3 style="margin-top: 0; color: #1565c0;">Investment Strategy (15 Years)</h3>
             <ul style="margin-bottom: 0; padding-left: 20px; line-height: 1.6;">
-                <li><strong>Initial Investment:</strong> Investing 2x amount in Arbitrage Fund (5% Return) via monthly
+                <li id="sipText5"><strong>Initial Investment:</strong> Investing 2x amount in Arbitrage Fund (5% Return)
+                    via monthly
                     SIPs.</li>
-                <li><strong>Secondary Investment:</strong> Investing 1x amount in Conservative Fund (10% Return) via
+                <li id="sipText10"><strong>Secondary Investment:</strong> Investing 1x amount in Conservative Fund (10%
+                    Return) via
                     monthly SIPs.</li>
                 <li><strong>Reinvestment Flow:</strong>
                     <ul>
                         <li>Payouts from Arbitrage Fund (Monthly) &rarr; Reinvested into Flexi Cap Fund (15% Return).
                         </li>
-                        <li>Payouts from Conservative Fund (Annually on Oct 30) &rarr; Reinvested into Flexi Cap Fund
-                            (15% Return).</li>
+                        <li>Payouts from Conservative Fund (Annually on Oct 30) &rarr; <strong>CASHED OUT
+                                (Deepavali)</strong>.</li>
                     </ul>
                 </li>
             </ul>
         </div>
-        <h1>Summary Report</h1>
+
+        <div style="margin-top: 2rem; text-align: center;">
+            <h2 style="font-size: 1.5em; color: #555;">Invested Amount: <span id="investedAmountDisplay"
+                    style="color: #333; font-weight: bold;">--</span></h2>
+        </div>
+
+        <h1>15-Year Summary Report</h1>
 
         <table id="reportTable">
             <thead>
                 <tr>
-                    <th>Product</th>
-                    <th>Returns</th>
-                    <th>XIRR</th>
+                    <th>Year & Details</th>
+                    <th>PP5 Returns (Values + XIRR)</th>
+                    <th>PP10 Returns (Values + XIRR)</th>
+                    <th>PP15 Returns (Values + XIRR)</th>
+                    <th>Total Cashout on Deepavali (Oct 30)</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <th><a href="transactions.html?accountId=sbi">Invested Amount (Total SIPs)</a></th>
-                    <td id="investedAmount">--</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <th><a href="transactions.html?accountId=pp5">Parag Parikh 5% Account (PP5)</a></th>
-                    <td id="returns5" style="color: green;">--</td>
-                    <td id="xirr5">--</td>
-                </tr>
-                <tr>
-                    <th><a href="transactions.html?accountId=pp10">Returns from 10% Account (PP10)</a></th>
-                    <td id="returns10" style="color: green;">--</td>
-                    <td id="xirr10">--</td>
-                </tr>
-                <tr>
-                    <th><a href="transactions.html?accountId=pp15">Returns from 15% Account (PP15)</a></th>
-                    <td id="returns15" style="color: green;">--</td>
-                    <td id="xirr15">--</td>
-                </tr>
-                <tr class="total-row">
-                    <th><a href="breakup.html">Total Returns (by 30 Oct 2026)</a></th>
-                    <td id="totalReturns2026">--</td>
-                    <td id="xirrAggregate">--</td>
-                </tr>
-                <tr>
-                    <th><a href="breakup.html">Further Returns (Oct 2026 - Mar 2027)</a></th>
-                    <td id="furtherReturns">--</td>
-                    <td></td>
-                </tr>
+            <tbody id="summaryBody">
+                <!-- Dynamic Rows -->
             </tbody>
         </table>
+
+        <div style="margin-top: 2rem;">
+            <a href="transactions.html">View Transactions</a> | <a href="breakup.html">View Interest Breakup</a>
+        </div>
     </div>
 
-    <script src="db.js"></script>
+    <script src="utils.js"></script>
+    <script src="simulation.js"></script>
     <script>
-        // Age Calculation (Existing)
-        function calculateAge(dob) {
-            const diff_ms = Date.now() - dob.getTime();
-            const age_dt = new Date(diff_ms);
-            return Math.abs(age_dt.getUTCFullYear() - 1970);
-        }
-        const dob = new Date('1989-02-05');
-        document.getElementById('age').innerText = calculateAge(dob);
         document.addEventListener('DOMContentLoaded', () => {
-            if (!window.db) {
-                document.body.innerHTML = '<h1 style="text-align:center">Data not loaded. Run npm run generate.</h1>';
-                return;
+            // 1. Parse URL Params
+            const urlParams = new URLSearchParams(window.location.search);
+            const name = urlParams.get('name') || 'Guest';
+            const dobStr = urlParams.get('date_of_birth') || '01-01-1990'; // DD-MM-YYYY
+            const sipAmount = parseInt(urlParams.get('sip')) || 300000;
+
+            // Display Details
+            document.getElementById('displayName').innerText = `Name: ${name}`;
+            document.getElementById('displayDob').innerText = `Date of birth: ${dobStr}`;
+
+            // Calculate Splits for Display
+            const part = Math.round(sipAmount / 3);
+            const pp5Sip = part * 2;
+            const pp10Sip = part;
+
+            // Update Strategy Text
+            document.getElementById('sipText5').innerHTML = `<strong>Initial Investment:</strong> Investing 2x amount (${window.utils.formatCurrency(pp5Sip)}) in Arbitrage Fund (5% Return) via monthly SIPs.`;
+            document.getElementById('sipText10').innerHTML = `<strong>Secondary Investment:</strong> Investing 1x amount (${window.utils.formatCurrency(pp10Sip)}) in Conservative Fund (10% Return) via monthly SIPs.`;
+
+            // Calculate Age
+            try {
+                const [d, m, y] = dobStr.split('-');
+                const dob = new Date(`${y}-${m}-${d}`);
+                const ageDiff = Date.now() - dob.getTime();
+                const ageDate = new Date(ageDiff);
+                const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+                document.getElementById('age').innerText = age;
+            } catch (e) {
+                console.error("Invalid DOB format");
             }
 
-            const { transactions } = window.db;
+            // 2. Run Simulation
+            const startYear = 2025;
+            const simData = window.simulation.runSimulation({ startYear, years: 15, sipAmount });
+            window.db = simData; // Expose for other pages
 
-            // 1. Invested Amount: Description "SIP Investment" (or "SIP Credit" from enum, mapped to string in generate_data.js)
-            // From generate_data.js: TransactionType.SIP_CREDIT = 'SIP Investment'
+            // 3. Populate Summary Table
+            const tbody = document.getElementById('summaryBody');
+            const { transactions, cashouts } = simData;
+
+            // Calculate Invested Amount (Total SIPs)
+            // Note: This is usually total running sum? Or final total?
+            // "Show invested amount above table separately"
             const investedAmount = transactions
                 .filter(tx => tx.description === 'SIP Investment')
                 .reduce((sum, tx) => sum + tx.amount, 0);
 
-            // 2. Returns 5% (PP5): "Interest Income" (Credit to pp5)
-            const returns5 = transactions
-                .filter(tx => tx.accountId === 'pp5' && tx.description === 'Interest Income' && tx.amount > 0)
-                .reduce((sum, tx) => sum + tx.amount, 0);
+            // Wait, Invested Amount grows over time. The display asks for "Invested Amount:"
+            // Does it mean Total Invested at end of 15 years? Or currently?
+            // Given the table is 15 years, probably Total Cumulative Investment.
+            document.getElementById('investedAmountDisplay').innerText = window.utils.formatCurrency(investedAmount);
 
-            // 3. Returns 10% (PP10)
-            const returns10 = transactions
-                .filter(tx => tx.accountId === 'pp10' && tx.description === 'Interest Income' && tx.amount > 0)
-                .reduce((sum, tx) => sum + tx.amount, 0);
+            // Generate 15 Years Rows
+            for (let i = 1; i <= 15; i++) {
+                const year = startYear + i; // e.g. 2026
+                const cutoffDate = new Date(`${year}-10-30`); // Use Oct 30 as reporting alignment
 
-            // 4. Returns 15% (PP15)
-            const returns15 = transactions
-                .filter(tx => tx.accountId === 'pp15' && tx.description === 'Interest Income' && tx.amount > 0)
-                .reduce((sum, tx) => sum + tx.amount, 0);
+                const row = document.createElement('tr');
 
-            // 5. Total Returns (by 30 Oct 2026)
-            const cutoffDate = new Date('2026-10-30');
-            const totalReturns2026 = transactions
-                .filter(tx =>
-                    tx.description === 'Interest Income' &&
-                    tx.amount > 0 &&
-                    ['pp5', 'pp10', 'pp15'].includes(tx.accountId) &&
-                    new Date(tx.date) <= cutoffDate
-                )
-                .reduce((sum, tx) => sum + tx.amount, 0);
+                // Helper to get Balance + XIRR
+                const getMetrics = (accId) => {
+                    // Balance as of cutoff (Assets held)
+                    const balance = transactions
+                        .filter(tx => tx.accountId === accId && new Date(tx.date) <= cutoffDate)
+                        .reduce((sum, tx) => sum + tx.amount, 0);
 
-            // 6. Further Returns (After 30 Oct 2026)
-            const furtherReturns = transactions
-                .filter(tx =>
-                    tx.description === 'Interest Income' &&
-                    tx.amount > 0 &&
-                    ['pp5', 'pp10', 'pp15'].includes(tx.accountId) &&
-                    new Date(tx.date) > cutoffDate
-                )
-                .reduce((sum, tx) => sum + tx.amount, 0);
+                    // Cash Flows for XIRR
+                    const stream = transactions
+                        .filter(tx =>
+                            tx.accountId === accId &&
+                            new Date(tx.date) <= cutoffDate &&
+                            ['SIP Investment', 'Reinvestment', 'Payout', 'Deepavali Cashout'].includes(tx.description)
+                        )
+                        .map(tx => {
+                            let amt = 0;
+                            // Investments (Inflow) -> Nagative
+                            if (tx.description === 'SIP Investment' || tx.description === 'Reinvestment') {
+                                amt = -tx.amount;
+                            }
+                            // Payouts (Outflow) -> Positive
+                            else if (tx.description === 'Payout') {
+                                // Payout amount in DB is Negative (Debit from fund)
+                                // So -(-val) = +val.
+                                amt = -tx.amount;
+                            }
+                            return { date: tx.date, amount: amt };
+                        });
 
-            // Update DOM
-            const format = (amt) => amt.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
-
-            document.getElementById('investedAmount').innerText = format(investedAmount);
-            document.getElementById('returns5').innerText = format(returns5);
-            document.getElementById('returns10').innerText = format(returns10);
-            document.getElementById('returns15').innerText = format(returns15);
-            document.getElementById('totalReturns2026').innerText = format(totalReturns2026);
-            document.getElementById('furtherReturns').innerText = format(furtherReturns);
-
-            // --- XIRR Calculation Logic ---
-
-            function calculateXIRR(cashFlows, guess = 0.1) {
-                if (cashFlows.length === 0) return 0;
-
-                const limit = 100; // Max iterations
-                const tol = 1e-6; // Tolerance
-                let xirr = guess;
-
-                const startDate = new Date(cashFlows[0].date);
-
-                for (let i = 0; i < limit; i++) {
-                    let fValue = 0;
-                    let fDerivative = 0;
-
-                    for (const { date, amount } of cashFlows) {
-                        const d = new Date(date);
-                        const days = (d - startDate) / (1000 * 60 * 60 * 24);
-                        const factor = Math.pow(1 + xirr, days / 365);
-
-                        fValue += amount / factor;
-                        fDerivative -= (amount * days) / (365 * factor * (1 + xirr));
+                    if (balance > 0) {
+                        stream.push({ date: cutoffDate.toISOString().split('T')[0], amount: balance });
                     }
 
-                    if (Math.abs(fValue) < tol) {
-                        return xirr;
-                    }
+                    const xirr = window.utils.calculateXIRR(stream);
+                    return { balance, xirr };
+                };
 
-                    if (Math.abs(fDerivative) < 1e-9) {
-                        // Derivative too small, likely stuck
-                        return xirr;
-                    }
+                const pp5 = getMetrics('pp5');
+                const pp10 = getMetrics('pp10');
+                const pp15 = getMetrics('pp15');
 
-                    const newXirr = xirr - fValue / fDerivative;
+                // Cashout for this year (Deepavali)
+                const cashout = cashouts.find(c => c.year === year);
+                const cashoutAmt = cashout ? cashout.amount : 0;
 
-                    if (!isFinite(newXirr)) return xirr; // Handle divergence
-
-                    if (Math.abs(newXirr - xirr) < tol) {
-                        return newXirr;
-                    }
-                    xirr = newXirr;
-                }
-                return xirr;
+                row.innerHTML = `
+                    <td style="font-weight: bold;">Year ${i} - ${year}</td>
+                    <td>${window.utils.formatCurrency(pp5.balance)} <span style="font-size:0.8em; color:green;">(${window.utils.formatPct(pp5.xirr)})</span></td>
+                    <td>${window.utils.formatCurrency(pp10.balance)} <span style="font-size:0.8em; color:green;">(${window.utils.formatPct(pp10.xirr)})</span></td>
+                    <td>${window.utils.formatCurrency(pp15.balance)} <span style="font-size:0.8em; color:green;">(${window.utils.formatPct(pp15.xirr)})</span></td>
+                    <td style="color: #d32f2f; font-weight: bold;">${cashoutAmt > 0 ? window.utils.formatCurrency(cashoutAmt) : '-'}</td>
+                `;
+                tbody.appendChild(row);
             }
-
-            function getCashFlows(accountId, cutoffDate) {
-                // 1. Filter Transactions for Cash Flow Stream (Investments/Payouts)
-                const stream = transactions
-                    .filter(tx =>
-                        tx.accountId === accountId &&
-                        new Date(tx.date) <= cutoffDate &&
-                        ['SIP Investment', 'Reinvestment', 'Payout'].includes(tx.description) // Exclude Interest Income from Stream
-                    ) // Assuming 'description' maps to those Enum values.
-                    // Wait, in generate_data.js:
-                    // SIP_CREDIT = 'SIP Investment'
-                    // TransactionType.SIP_CREDIT is used.
-                    // We need to match the STRING values stored in JSON.
-                    // Let's check generate_data.js View again.
-                    // generate_data.js imports enum, but stores the STRING value?
-                    // addTransaction(..., TransactionType.SIP_CREDIT, ...)
-                    // const TransactionType = { SIP_CREDIT: 'SIP Investment', ... }
-                    // So we must match 'SIP Investment', 'Reinvestment', 'Payout'.
-                    .filter(tx => {
-                        const desc = tx.description;
-                        return desc === 'SIP Investment' || desc === 'Reinvestment' || desc === 'Payout';
-                    })
-                    .map(tx => {
-                        let cfAmount = 0;
-                        if (tx.description === 'SIP Investment' || tx.description === 'Reinvestment') {
-                            // Inflow to fund: Treated as NEGATIVE for XIRR (Investment)
-                            // In DB: Amount is POSITIVE (Asset Increase).
-                            cfAmount = -tx.amount;
-                        } else if (tx.description === 'Payout') {
-                            // Outflow from fund: Treated as POSITIVE for XIRR (Return)
-                            // In DB: Amount is NEGATIVE (Asset Decrease).
-                            cfAmount = -tx.amount; // - (-val) = +val
-                        }
-                        return { date: tx.date, amount: cfAmount };
-                    });
-
-                // 2. Calculate Terminal Value (Balance at Cutoff)
-                const balance = transactions
-                    .filter(tx => tx.accountId === accountId && new Date(tx.date) <= cutoffDate)
-                    .reduce((sum, tx) => sum + tx.amount, 0);
-
-                if (balance > 0) {
-                    stream.push({ date: cutoffDate.toISOString().split('T')[0], amount: balance });
-                }
-
-                return stream.sort((a, b) => new Date(a.date) - new Date(b.date));
-            }
-
-            const xirrDate = new Date('2026-10-30'); // Same as Total Returns Cutoff
-
-            // Calculate XIRR for each
-            const cf5 = getCashFlows('pp5', xirrDate);
-            const xirr5 = calculateXIRR(cf5);
-
-            const cf10 = getCashFlows('pp10', xirrDate);
-            const xirr10 = calculateXIRR(cf10);
-
-            const cf15 = getCashFlows('pp15', xirrDate);
-            const xirr15 = calculateXIRR(cf15);
-
-            // Portfolio XIRR (Total)
-            // Stream: External Inflows (SIPs to pp5/pp10) + Terminal Value (Sum of all balances)
-            // We ignore internal flows (Payout pp5 -> Reinvest pp15) as they cancel out if we sum them? 
-            // Better to construct explicitly:
-            // Inflows: SIP Investment into pp5 OR pp10.
-            // Terminal: Balance pp5 + Balance pp10 + Balance pp15.
-            const portfolioStream = transactions
-                .filter(tx =>
-                    (tx.accountId === 'pp5' || tx.accountId === 'pp10') &&
-                    tx.description === 'SIP Investment' &&
-                    new Date(tx.date) <= xirrDate
-                )
-                .map(tx => ({ date: tx.date, amount: -tx.amount })); // Investment is negative
-
-            const bal5 = transactions.filter(tx => tx.accountId === 'pp5' && new Date(tx.date) <= xirrDate).reduce((s, t) => s + t.amount, 0);
-            const bal10 = transactions.filter(tx => tx.accountId === 'pp10' && new Date(tx.date) <= xirrDate).reduce((s, t) => s + t.amount, 0);
-            const bal15 = transactions.filter(tx => tx.accountId === 'pp15' && new Date(tx.date) <= xirrDate).reduce((s, t) => s + t.amount, 0);
-
-            const totalBalance = bal5 + bal10 + bal15;
-            portfolioStream.push({ date: xirrDate.toISOString().split('T')[0], amount: totalBalance });
-
-            const xirrTotal = calculateXIRR(portfolioStream.sort((a, b) => new Date(a.date) - new Date(b.date)));
-
-            // Update UI
-            const formatPct = (val) => (val * 100).toFixed(2) + '%';
-
-            document.getElementById('xirr5').innerText = formatPct(xirr5);
-            document.getElementById('xirr10').innerText = formatPct(xirr10);
-            document.getElementById('xirr15').innerText = formatPct(xirr15);
-            document.getElementById('xirrAggregate').innerText = formatPct(xirrTotal);
-            // document.getElementById('xirrTotal').innerText = formatPct(xirrTotal);
         });
     </script>
 </body>

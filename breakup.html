@@ -50,6 +50,18 @@
         th {
             background-color: #f8f9fa;
         }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        select {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
     </style>
 </head>
 
@@ -60,6 +72,13 @@
         <p style="text-align: center; color: #666; margin-bottom: 2rem;">
             Detailed calculation of Lot-wise Interest (Calculated Annually on Oct 30)
         </p>
+
+        <div class="controls">
+            <label for="yearSelect">Select Year: </label>
+            <select id="yearSelect">
+                <!-- Populated by JS -->
+            </select>
+        </div>
 
         <table>
             <thead>
@@ -77,39 +96,74 @@
         </table>
     </div>
 
-    <script src="db.js"></script>
+    <script src="utils.js"></script>
+    <script src="simulation.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            if (!window.db || !window.db.interestBreakup) {
-                document.getElementById('breakupTable').innerHTML = '<tr><td colspan="5">No data found. Run npm run generate.</td></tr>';
-                return;
+            // Parse URL Params
+            const urlParams = new URLSearchParams(window.location.search);
+            const sipAmount = parseInt(urlParams.get('sip')) || 300000;
+
+            // Run Simulation
+            const startYear = 2025;
+            const simData = window.simulation.runSimulation({ startYear, years: 15, sipAmount });
+            const { interestBreakup } = simData;
+
+            const yearSelect = document.getElementById('yearSelect');
+            const tbody = document.getElementById('breakupTable');
+
+            // Populate Year Dropdown
+            for (let i = 1; i <= 15; i++) {
+                const year = startYear + i;
+                const opt = document.createElement('option');
+                opt.value = year;
+                opt.textContent = `Year ${i} (${year})`;
+                yearSelect.appendChild(opt);
             }
 
-            const { interestBreakup } = window.db;
-            const tbody = document.getElementById('breakupTable');
-            let totalInterest = 0;
+            function renderTable(filterYear) {
+                tbody.innerHTML = '';
+                let totalInterest = 0;
 
-            interestBreakup.forEach(item => {
-                totalInterest += item.interest;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.date}</td>
-                    <td>${item.lotDate}</td>
-                    <td style="text-align: right;">${item.lotAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</td>
-                    <td style="text-align: right;">${item.days}</td>
-                    <td style="text-align: right; font-weight: bold; color: green;">${item.interest.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</td>
+                // Filter data for the selected year (Oct 30 of that year)
+                // interestBreakup items have 'date' field e.g. "2026-10-30"
+                const filtered = interestBreakup.filter(item => item.date.startsWith(filterYear));
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No interest credits for this year.</td></tr>';
+                    return;
+                }
+
+                filtered.forEach(item => {
+                    totalInterest += item.interest;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.date}</td>
+                        <td>${item.lotDate}</td>
+                        <td style="text-align: right;">${window.utils.formatCurrency(item.lotAmount)}</td>
+                        <td style="text-align: right;">${item.days}</td>
+                        <td style="text-align: right; font-weight: bold; color: green;">${window.utils.formatCurrency(item.interest)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Add Total Row
+                const trTotal = document.createElement('tr');
+                trTotal.style.backgroundColor = '#eef';
+                trTotal.innerHTML = `
+                    <td colspan="4" style="text-align: right; font-weight: bold;">Total Interest Credited:</td>
+                    <td style="text-align: right; font-weight: bold; color: green;">${window.utils.formatCurrency(totalInterest)}</td>
                 `;
-                tbody.appendChild(tr);
-            });
+                tbody.appendChild(trTotal);
+            }
 
-            // Add Total Row
-            const trTotal = document.createElement('tr');
-            trTotal.style.backgroundColor = '#eef';
-            trTotal.innerHTML = `
-                <td colspan="4" style="text-align: right; font-weight: bold;">Total Interest Credited:</td>
-                <td style="text-align: right; font-weight: bold; color: green;">${totalInterest.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</td>
-            `;
-            tbody.appendChild(trTotal);
+            // Initial Render (Year 1)
+            renderTable(String(startYear + 1));
+
+            // Event Listener
+            yearSelect.addEventListener('change', (e) => {
+                renderTable(e.target.value);
+            });
         });
     </script>
 </body>
