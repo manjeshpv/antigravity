@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Reports</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        a {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+        }
+
+        td {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td:first-child {
+            text-align: left;
+        }
+
+        .personal-details {
+            margin-bottom: 1rem;
+            font-size: 1.1em;
+        }
+
+        .personal-details span {
+            margin-right: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Preserve Query Params in Link? For now simple link -->
+        <h3><a
+                href="/?name=<%= userParams.name %>&date_of_birth=<%= userParams.dob %>&sip=<%= userParams.sip %>">Dashboard</a>
+        </h3>
+        <div class="personal-details">
+            <span id="displayName">Name: <%= userParams.name %></span> |
+            <span id="displayDob">Date of Birth: <%= userParams.dob %></span> |
+            <span>Age: <span id="age">
+                    <%= age %>
+                </span></span> |
+            <span>Monthly SIP Amount: <%= utils.formatCurrency(userParams.sip) %></span>
+        </div>
+
+        <div class="strategy"
+            style="background: #e3f2fd; padding: 1rem; margin-top: 1rem; border-radius: 8px; border-left: 5px solid #2196f3; text-align: left;">
+            <h3 style="margin-top: 0; color: #1565c0;">Investment Strategy (15 Years)</h3>
+            <ul style="margin-bottom: 0; padding-left: 20px; line-height: 1.6;">
+                <li id="sipText5"><strong>Initial Investment:</strong> Investing 2x amount (<%=
+                        utils.formatCurrency(strategy.pp5Sip) %>) in Arbitrage Fund (5% Return) via monthly SIPs.</li>
+                <li id="sipText10"><strong>Secondary Investment:</strong> Investing 1x amount (<%=
+                        utils.formatCurrency(strategy.pp10Sip) %>) in Conservative Fund (10% Return) via monthly SIPs.
+                </li>
+                <li><strong>Reinvestment Flow:</strong>
+                    <ul>
+                        <li>Payouts from Arbitrage Fund (Monthly) &rarr; Reinvested into Flexi Cap Fund (15% Return).
+                        </li>
+                        <li>Payouts from Conservative Fund (Annually on Oct 30) &rarr; <strong>CASHED OUT
+                                (Deepavali)</strong>.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <h3>15-Year Summary Report | <a
+                href="/transactions?account=sbi&name=<%= userParams.name %>&date_of_birth=<%= userParams.dob %>&sip=<%= userParams.sip %>">Invested
+                Amount: <span id="investedAmountDisplay" style="color: #333; font-weight: bold;">
+                    <%= utils.formatCurrency(investedAmount) %>
+                </span></a></h3>
+
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th><a
+                            href="/transactions?account=pp5&name=<%= userParams.name %>&date_of_birth=<%= userParams.dob %>&sip=<%= userParams.sip %>">PP5
+                            Returns</a></th>
+                    <th><a
+                            href="/transactions?account=pp10&name=<%= userParams.name %>&date_of_birth=<%= userParams.dob %>&sip=<%= userParams.sip %>">PP10
+                            Returns</a></th>
+                    <th><a
+                            href="/transactions?account=pp15&name=<%= userParams.name %>&date_of_birth=<%= userParams.dob %>&sip=<%= userParams.sip %>">PP15
+                            Returns</a></th>
+                    <th>Total Cashout on Deepavali (Oct 30)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% summaryRows.forEach(row=> { %>
+                    <tr>
+                        <td style="font-weight: bold;">Year <%= row.yearIndex %> - <%= row.year %>
+                        </td>
+                        <td>
+                            <%= utils.formatCurrency(row.pp5.balance) %> <span style="font-size:0.8em; color:green;">(
+                                    <%= utils.formatPct(row.pp5.xirr) %>)</span>
+                        </td>
+                        <td>
+                            <%= utils.formatCurrency(row.pp10.balance) %> <span style="font-size:0.8em; color:green;">(
+                                    <%= utils.formatPct(row.pp10.xirr) %>)</span>
+                        </td>
+                        <td>
+                            <%= utils.formatCurrency(row.pp15.balance) %> <span style="font-size:0.8em; color:green;">(
+                                    <%= utils.formatPct(row.pp15.xirr) %>)</span>
+                        </td>
+                        <td style="color: #d32f2f; font-weight: bold;">
+                            <%= row.cashout> 0 ? utils.formatCurrency(row.cashout) : '-' %>
+                        </td>
+                    </tr>
+                    <% }) %>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 2rem;">
+            <a
+                href="/transactions?name=<%= userParams.name %>&date_of_birth=<%= userParams.dob %>&sip=<%= userParams.sip %>">View
+                Transactions</a> |
+            <a
+                href="/breakup?name=<%= userParams.name %>&date_of_birth=<%= userParams.dob %>&sip=<%= userParams.sip %>">View
+                Interest Breakup</a>
+        </div>
+    </div>
+</body>
+
+</html>

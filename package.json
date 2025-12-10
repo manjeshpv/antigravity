@@ -4,5 +4,22 @@
     "description": "Investment Dashboard",
     "scripts": {
         "generate": "node generate_data.js"
+    },
+    "main": "db.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/manjeshpv/antigravity.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "bugs": {
+        "url": "https://github.com/manjeshpv/antigravity/issues"
+    },
+    "homepage": "https://github.com/manjeshpv/antigravity#readme",
+    "dependencies": {
+        "ejs": "^3.1.10",
+        "express": "^5.2.1"
     }
 }

@@ -147,7 +147,7 @@
             };
 
             // Handle Query Params (for back navigation state if needed)
-            const initialAccount = urlParams.get('accountId') || 'all';
+            const initialAccount = urlParams.get('accountId') || urlParams.get('account') || 'all';
 
             // Set Dropdown if valid
             if (initialAccount !== 'all') {

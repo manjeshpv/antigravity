@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15% Fund Interest Breakup</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        a {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        select {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/?name=<%= userParams.name %>&date_of_birth=<%= userParams.dob %>&sip=<%= userParams.sip %>">&larr;
+            Back to Dashboard</a>
+        <h1>15% Fund Interest Breakup</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+            Detailed calculation of Lot-wise Interest (Calculated Annually on Oct 30)
+        </p>
+
+        <div class="controls">
+            <label for="yearSelect">Select Year: </label>
+            <select id="yearSelect" onchange="filterTable(this.value)">
+                <% for(let i=1; i<=15; i++) { let y=2025 + i; let selected=(y==selectedYear) ? 'selected' : '' ; %>
+                    <option value="<%= y %>" <%=selected %>>Year <%= i %> (<%= y %>)</option>
+                    <% } %>
+            </select>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Calculation Date</th>
+                    <th>Lot Date</th>
+                    <th style="text-align: right;">Lot Amount</th>
+                    <th style="text-align: right;">Days Held</th>
+                    <th style="text-align: right;">Interest (15%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% let totalInterest=0; let hasData=false; interestBreakup.forEach(item=> {
+                    // Simple server-side filter if we pass filtered data,
+                    // OR pass ALL data and filter client side?
+                    // To keep it simple "Express" style, let's filter Server Side based on ?year=...
+                    // But the original had client-side dropdown.
+                    // Let's implement Server Side navigation for dropdown -> reload page.
+                    // Or keep all data and use client JS for filtering?
+                    // "Refactor Views... Update to consume data passed".
+                    // Let's stick to Server Side Filtering for purity of the exercise,
+                    // so selecting year reloads page /breakup?year=2026
+                    totalInterest += item.interest;
+                    hasData = true;
+                    %>
+                    <tr>
+                        <td>
+                            <%= item.date %>
+                        </td>
+                        <td>
+                            <%= item.lotDate %>
+                        </td>
+                        <td style="text-align: right;">
+                            <%= utils.formatCurrency(item.lotAmount) %>
+                        </td>
+                        <td style="text-align: right;">
+                            <%= item.days %>
+                        </td>
+                        <td style="text-align: right; font-weight: bold; color: green;">
+                            <%= utils.formatCurrency(item.interest) %>
+                        </td>
+                    </tr>
+                    <% }); %>
+
+                        <% if (!hasData) { %>
+                            <tr>
+                                <td colspan="5" style="text-align:center;">No interest credits for this year.</td>
+                            </tr>
+                            <% } else { %>
+                                <tr style="background-color: #eef;">
+                                    <td colspan="4" style="text-align: right; font-weight: bold;">Total Interest
+                                        Credited:</td>
+                                    <td style="text-align: right; font-weight: bold; color: green;">
+                                        <%= utils.formatCurrency(totalInterest) %>
+                                    </td>
+                                </tr>
+                                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function filterTable(year) {
+            // Reload with new year param, keeping others
+            const url = new URL(window.location.href);
+            url.searchParams.set('year', year);
+            window.location.href = url.toString();
+        }
+    </script>
+</body>
+
+</html>
