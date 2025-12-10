@@ -162,10 +162,17 @@
                     // Resolve account name
                     const accName = accountMap[tx.accountId] || tx.accountId;
 
+                    // Helper for description format
+                    let desc = tx.description;
+                    if (tx.relatedAccountId) {
+                        const relatedName = accountMap[tx.relatedAccountId] || tx.relatedAccountId;
+                        desc += ` <span style="font-size: 0.8em; color: #888;">(Ref: ${relatedName})</span>`;
+                    }
+
                     tr.innerHTML = `
                         <td style="padding: 8px;">${tx.date}</td>
                         <td style="padding: 8px; color: #666;">${accName}</td>
-                        <td style="padding: 8px;">${tx.description}</td>
+                        <td style="padding: 8px;">${desc}</td>
                         <td style="padding: 8px; text-align: right; color: ${tx.amount >= 0 ? 'green' : 'red'};">
                             ${tx.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                         </td>

@@ -31,13 +31,14 @@ const lots15 = []; // To track lots for 15% fund { date, amount }
 const interestBreakup = []; // To track detailed interest calc { date, lotDate, lotAmount, days, interest }
 
 // Helper to add transaction
-function addTransaction(date, description, amount, accountId) {
+function addTransaction(date, description, amount, accountId, relatedAccountId = null) {
     transactions.push({
         id: transactions.length + 1,
         date: date.toISOString().split('T')[0], // YYYY-MM-DD
         description,
         amount,
-        accountId
+        accountId,
+        relatedAccountId // Added field
     });
 }
 
@@ -90,16 +91,17 @@ while (currentDate <= endDate) {
                 // User said: "add one opposite entry(interest credit as income) to 5% and 10% funds"
                 // So in 'pp5': Credit "Interest Income".
                 // In 'interest_income' account: Debit? (To balance).
-                addTransaction(currentDate, TransactionType.INTEREST_INCOME, -monthlyPayout, 'interest_income');
-                addTransaction(currentDate, TransactionType.INTEREST_INCOME, monthlyPayout, 'pp5');
+                // Add reference to each other
+                addTransaction(currentDate, TransactionType.INTEREST_INCOME, -monthlyPayout, 'interest_income', 'pp5');
+                addTransaction(currentDate, TransactionType.INTEREST_INCOME, monthlyPayout, 'pp5', 'interest_income');
 
                 // 2. Payout: Debit 5% Fund, Credit Reinvestment?
                 // Flow: 5% Fund Payout -> Reinvest in 15% Fund.
                 // Debit 'pp5' (Money leaves).
-                addTransaction(currentDate, TransactionType.PAYOUT, -monthlyPayout, 'pp5');
+                addTransaction(currentDate, TransactionType.PAYOUT, -monthlyPayout, 'pp5', 'pp15');
 
                 // Credit 'pp15' (Money enters)
-                addTransaction(currentDate, TransactionType.REINVESTMENT, monthlyPayout, 'pp15');
+                addTransaction(currentDate, TransactionType.REINVESTMENT, monthlyPayout, 'pp15', 'pp5');
 
                 // Track 15% Lot
                 lots15.push({ date: new Date(currentDate), amount: monthlyPayout });
@@ -113,14 +115,14 @@ while (currentDate <= endDate) {
             const annualPayout = Math.round(balance10 * 0.10);
 
             // Interest Income
-            addTransaction(currentDate, TransactionType.INTEREST_INCOME, -annualPayout, 'interest_income');
-            addTransaction(currentDate, TransactionType.INTEREST_INCOME, annualPayout, 'pp10');
+            addTransaction(currentDate, TransactionType.INTEREST_INCOME, -annualPayout, 'interest_income', 'pp10');
+            addTransaction(currentDate, TransactionType.INTEREST_INCOME, annualPayout, 'pp10', 'interest_income');
 
             // Payout
-            addTransaction(currentDate, TransactionType.PAYOUT, -annualPayout, 'pp10');
+            addTransaction(currentDate, TransactionType.PAYOUT, -annualPayout, 'pp10', 'pp15');
 
             // Reinvestment
-            addTransaction(currentDate, TransactionType.REINVESTMENT, annualPayout, 'pp15');
+            addTransaction(currentDate, TransactionType.REINVESTMENT, annualPayout, 'pp15', 'pp10');
 
             // Track 15% Lot
             lots15.push({ date: new Date(currentDate), amount: annualPayout });
@@ -141,7 +143,7 @@ while (currentDate <= endDate) {
             // "interest of 15% for the last 1 year".
             // If lot is older than 1 year, we pay 1 year interest?
             // Or is it Cumulative? 
-            // "add interest... for the last 1 year".
+            // "add... interest". 
             // Typically means Annual Interest Credit.
             // If lot is new (e.g. from Dec 1 2025), and today is Oct 30 2026.
             // Interest = Amount * 15% * (Dec->Oct / 365).
@@ -182,8 +184,8 @@ while (currentDate <= endDate) {
             // Credit Interest to 15% Fund (Growth)
             // "add interest...". It increases the value.
             // Debit Interest Account -> Credit 15% Fund.
-            addTransaction(currentDate, TransactionType.INTEREST_INCOME, -totalInterest15, 'interest_income');
-            addTransaction(currentDate, TransactionType.INTEREST_INCOME, totalInterest15, 'pp15');
+            addTransaction(currentDate, TransactionType.INTEREST_INCOME, -totalInterest15, 'interest_income', 'pp15');
+            addTransaction(currentDate, TransactionType.INTEREST_INCOME, totalInterest15, 'pp15', 'interest_income');
 
             // Does this interest become a new LOT? Compounding?
             // Usually yes.
