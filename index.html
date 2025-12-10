@@ -76,6 +76,10 @@
                     style="margin-top: 1rem; font-weight: bold; font-size: 1.2rem; color: #28a745;">
                     Closing Balance: --
                 </div>
+                <div style="margin-top: 0.5rem;">
+                    <a href="breakup.html" style="color: #007bff; text-decoration: none;">View 15% Fund Interest
+                        Breakup</a>
+                </div>
             </div>
 
             <table id="txTable" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
@@ -95,7 +99,7 @@
         </div>
     </div>
 
-    <script src="data.js"></script>
+    <script src="db.js"></script>
     <script>
         // Age Calculation (Existing)
         function calculateAge(dob) {
@@ -110,16 +114,20 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM Loaded, checking for data...');
 
-            if (!window.dashboardData) {
-                console.error('window.dashboardData is undefined!');
-                document.getElementById('balanceDisplay').innerText = 'Error: Data not loaded.';
+            if (!window.db) {
+                console.error('window.db is undefined!');
+                document.getElementById('balanceDisplay').innerText = 'Error: Data not loaded. Run npm run generate.';
                 return;
             }
 
-            const { accounts, transactions } = window.dashboardData;
+            const { accounts, transactions } = window.db;
             const accountSelect = document.getElementById('accountSelect');
             const txTableBody = document.querySelector('#txTable tbody');
             const balanceDisplay = document.getElementById('balanceDisplay');
+
+            // Create Account Lookup Map
+            const accountMap = {};
+            accounts.forEach(acc => accountMap[acc.id] = acc.name);
 
             // Populate Dropdown
             accounts.forEach(acc => {
@@ -151,8 +159,8 @@
                     const tr = document.createElement('tr');
                     tr.style.borderBottom = '1px solid #eee';
 
-                    // Find account name
-                    const accName = accounts.find(a => a.id === tx.accountId)?.name || tx.accountId;
+                    // Resolve account name
+                    const accName = accountMap[tx.accountId] || tx.accountId;
 
                     tr.innerHTML = `
                         <td style="padding: 8px;">${tx.date}</td>

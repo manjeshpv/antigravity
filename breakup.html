@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15% Fund Interest Breakup</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        a {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="index.html">&larr; Back to Dashboard</a>
+        <h1>15% Fund Interest Breakup</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+            Detailed calculation of Lot-wise Interest (Calculated Annually on Oct 30)
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Calculation Date</th>
+                    <th>Lot Date</th>
+                    <th style="text-align: right;">Lot Amount</th>
+                    <th style="text-align: right;">Days Held</th>
+                    <th style="text-align: right;">Interest (15%)</th>
+                </tr>
+            </thead>
+            <tbody id="breakupTable">
+                <!-- Rows -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="db.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.db || !window.db.interestBreakup) {
+                document.getElementById('breakupTable').innerHTML = '<tr><td colspan="5">No data found. Run npm run generate.</td></tr>';
+                return;
+            }
+
+            const { interestBreakup } = window.db;
+            const tbody = document.getElementById('breakupTable');
+            let totalInterest = 0;
+
+            interestBreakup.forEach(item => {
+                totalInterest += item.interest;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${item.lotDate}</td>
+                    <td style="text-align: right;">${item.lotAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</td>
+                    <td style="text-align: right;">${item.days}</td>
+                    <td style="text-align: right; font-weight: bold; color: green;">${item.interest.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Add Total Row
+            const trTotal = document.createElement('tr');
+            trTotal.style.backgroundColor = '#eef';
+            trTotal.innerHTML = `
+                <td colspan="4" style="text-align: right; font-weight: bold;">Total Interest Credited:</td>
+                <td style="text-align: right; font-weight: bold; color: green;">${totalInterest.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</td>
+            `;
+            tbody.appendChild(trTotal);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,8 @@
+{
+    "name": "simple-html",
+    "version": "1.0.0",
+    "description": "Investment Dashboard",
+    "scripts": {
+        "generate": "node generate_data.js"
+    }
+}
