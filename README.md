@@ -15,6 +15,14 @@ The page must display the following text clearly:
     - **Name**: "Manjesh"
     - **Date of Birth**: "05 Feb 1989"
     - **Age**: Dynamically calculated based on DOB
+- **Investment Dashboard**:
+    - **Ledger Generation**: Tracks SIPs and Payouts for FY 2025-26 & FY 2026-27.
+    - **Accounts**:
+        - SBI Salary Account
+        - Zerodha Coin - Parag Parikh 5% returns fund
+        - Zerodha Coin - Parag Parikh 10% returns fund
+        - Zerodha Coin - Parag Parikh 15% returns fund
+    - **Features**: Filter by account, closing balance calculation.
 
 ### 3. Technical Requirements
 - **Format**: HTML5

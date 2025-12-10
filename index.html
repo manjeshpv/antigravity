@@ -48,16 +48,124 @@
             <p>Date of birth: 05 Feb 1989</p>
             <p>Age: <span id="age"></span></p>
         </div>
+
+        <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #ddd;">
+
+        <div class="dashboard">
+            <h2>Investment Dashboard (FY 25-27)</h2>
+            <div class="controls" style="margin-bottom: 1rem;">
+                <label for="accountSelect">Filter by Account: </label>
+                <select id="accountSelect" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="all">All Accounts</option>
+                    <!-- Options populated by JS -->
+                </select>
+                <div id="balanceDisplay"
+                    style="margin-top: 1rem; font-weight: bold; font-size: 1.2rem; color: #28a745;">
+                    Closing Balance: --
+                </div>
+            </div>
+
+            <table id="txTable" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="padding: 10px; border-bottom: 2px solid #dee2e6;">Date</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #dee2e6;">Account</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #dee2e6;">Description</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #dee2e6; text-align: right;">Amount</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #dee2e6; text-align: right;">Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows populated by JS -->
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <script src="data.js"></script>
     <script>
+        // Age Calculation (Existing)
         function calculateAge(dob) {
             const diff_ms = Date.now() - dob.getTime();
             const age_dt = new Date(diff_ms);
             return Math.abs(age_dt.getUTCFullYear() - 1970);
         }
-
         const dob = new Date('1989-02-05');
         document.getElementById('age').innerText = calculateAge(dob);
+
+        // Dashboard Logic - Wrapped in listener
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM Loaded, checking for data...');
+
+            if (!window.dashboardData) {
+                console.error('window.dashboardData is undefined!');
+                document.getElementById('balanceDisplay').innerText = 'Error: Data not loaded.';
+                return;
+            }
+
+            const { accounts, transactions } = window.dashboardData;
+            const accountSelect = document.getElementById('accountSelect');
+            const txTableBody = document.querySelector('#txTable tbody');
+            const balanceDisplay = document.getElementById('balanceDisplay');
+
+            // Populate Dropdown
+            accounts.forEach(acc => {
+                const opt = document.createElement('option');
+                opt.value = acc.id;
+                opt.textContent = acc.name;
+                accountSelect.appendChild(opt);
+            });
+
+            // Render Table Function
+            window.renderTable = function (accountId) { // Make global for easy testing
+                txTableBody.innerHTML = '';
+
+                // Sort transactions by date
+                const sortedTx = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                let runningBalance = 0;
+                let filteredTx = [];
+
+                if (accountId === 'all') {
+                    filteredTx = sortedTx;
+                } else {
+                    filteredTx = sortedTx.filter(tx => tx.accountId === accountId);
+                }
+
+                filteredTx.forEach(tx => {
+                    runningBalance += tx.amount;
+
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid #eee';
+
+                    // Find account name
+                    const accName = accounts.find(a => a.id === tx.accountId)?.name || tx.accountId;
+
+                    tr.innerHTML = `
+                        <td style="padding: 8px;">${tx.date}</td>
+                        <td style="padding: 8px; color: #666;">${accName}</td>
+                        <td style="padding: 8px;">${tx.description}</td>
+                        <td style="padding: 8px; text-align: right; color: ${tx.amount >= 0 ? 'green' : 'red'};">
+                            ${tx.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                        </td>
+                        <td style="padding: 8px; text-align: right; font-weight: bold;">
+                            ${runningBalance.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                        </td>
+                    `;
+                    txTableBody.appendChild(tr);
+                });
+
+                balanceDisplay.textContent = `Closing Balance: ${runningBalance.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}`;
+            };
+
+            // Initial Render
+            renderTable('all');
+
+            // Event Listener
+            accountSelect.addEventListener('change', (e) => {
+                renderTable(e.target.value);
+            });
+        });
     </script>
 </body>
 
