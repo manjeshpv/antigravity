@@ -89,41 +89,14 @@ while (currentDate <= endDate) {
             if (payoutBase > 0) {
                 const monthlyPayout = Math.round((payoutBase * 0.05) / 12);
                 if (monthlyPayout > 0) {
+                    // Credit Interest as Income (Increases Balance technically)
+                    addTransaction(currentDate, 'Interest Income (5% Fund)', monthlyPayout, 'pp5');
+
+                    // Debit Payout (Decreases Balance back to Principal)
                     addTransaction(currentDate, 'Monthly Payout (5% Fund)', -monthlyPayout, 'pp5');
+
+                    // Reinvest in 15% Fund
                     addTransaction(currentDate, 'Reinvestment from 5% Fund', monthlyPayout, 'pp15');
-                    // Note: Payout leaves the 5% fund (Debit) and enters 15% fund (Credit).
-                    // Does it reduce the capital in 5% fund? "gives monthly payout" usually implies dividend/interest 
-                    // without reducing principal, OR unit redemption. 
-                    // Usually "Arbitrage fund" with "payout" option keeps NAV steady (mostly) and pays out dividend.
-                    // So Principal `balance5` should theoretically stay same? 
-                    // "which will give monthly payout" -> implied Dividend Payout option.
-                    // So I will NOT reduce `balance5` variable (which tracks principal for future calc).
-                    // But I DO record a negative transaction to show money leaving? 
-                    // No, "Payout" is income. 
-                    // If it's a Dividend Payout: 
-                    // Fund Value (Principal) stays 2L. 
-                    // Cash comes out.
-                    // Implementation: 
-                    // Transaction in 'pp5': Description "Dividend Payout", Amount 0? Or Amount -Payout?
-                    // If I put -Payout, the running balance of 'pp5' in the table will decrease. 
-                    // But the *actual* value of the investment (Principal) is constant.
-                    // The USER wants to see "transactions". 
-                    // If I show -Payout in PP5, it looks like withdrawal. 
-                    // If PP5 is a "Ledger of Value", then Payout shouldn't reduce it if it's "Return".
-                    // But if it's "Transfer", money moves.
-                    // Let's treat PP5 Ledger as "Cash Flow" or "Value"? 
-                    // Usually these accounts track "Holdings".
-                    // If Dividend is paid, it doesn't reduce unit balance (mostly). 
-                    // I will NOT show a negative entry in PP5 for the payout itself effectively reducing principal.
-                    // I will show:
-                    // 1. PP5 generates payout. (Maybe just show the Credit in PP15?)
-                    // The user said: "all the 13 payouts... invested into... 15% fund".
-                    // So I definitely need Credit in PP15.
-                    // Should I show Debit in PP5?
-                    // If I don't, PP5 balance keeps increasing by 2L SIP.
-                    // If I do, PP5 balance reduces? No, dividend doesn't reduce capital.
-                    // So I will only show the INFLOW to PP15.
-                    // And maybe a "Reference" in the description.
                 }
             }
         }
@@ -131,38 +104,20 @@ while (currentDate <= endDate) {
 
     // Payout Logic for 10% Fund (Oct 30th)
     if (month === 9 && day === 30) { // Oct is 9
-        // Calculate 10% annual return?
+        // Calculate 10% annual return
         // "gives payout once in Oct 30th every year"
         // Base? All accumulated capital? 
         // Yes, `balance10`.
         if (balance10 > 0) {
             const annualPayout = Math.round(balance10 * 0.10);
+
+            // Credit Interest Account
+            addTransaction(currentDate, 'Interest Income (10% Fund)', annualPayout, 'pp10');
+
+            // Debit Payout
             addTransaction(currentDate, 'Annual Payout (10% Fund)', -annualPayout, 'pp10');
-            // Wait, same logic. Does it reduce principal? 
-            // "Conservative Hybrid Fund" - usually growth or IDCW. 
-            // If IDCW (Payout), NAV drops by payout amount. 
-            // So Principal (Market Value) DROPS.
-            // Unlike "Interest", Mutual Fund Dividends differ. 
-            // But "Arbitrage Fund 5% return" sounds like a fixed deposit substitute mental model.
-            // User likely expects Principal to stay intact? 
-            // "Manjesh invested 2 lac... which will give...".
-            // I will assume Principal stays intact for the sake of the "Bank/FD" mental model unless specified.
-            // So I will NOT debit the source fund. 
-            // Only Credit the destination fund.
 
-            // UPDATE: User asked for "transactions... opening balance... closing balance".
-            // If I don't debit, where does the money come from? 
-            // Magic?
-            // In accounting: 
-            // Income Account -> Payout.
-            // But here we only have Asset Accounts (Bank, MF).
-            // So it appears as "Gain" (Credit to PP15) without Debit elsewhere.
-            // That's acceptable for an Investment Dashboard (Returns are new money).
-            // However, checking "transactions.json" request: 
-            // "Opening Balance... SIP... Payout... invested into..."
-            // I will log the "Investment" in PP15.
-            // I will NOT log a Debit in PP5/10.
-
+            // Reinvest
             addTransaction(currentDate, 'Reinvestment from 10% Fund', annualPayout, 'pp15');
         }
     }
@@ -172,4 +127,9 @@ while (currentDate <= endDate) {
 }
 
 // Export to global scope
-window.dashboardData = { accounts, transactions };
+if (window) {
+    window.dashboardData = { accounts, transactions };
+} else {
+    // For non-browser env (if needed)
+    module.exports = { accounts, transactions };
+}
