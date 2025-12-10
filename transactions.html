@@ -54,7 +54,7 @@
 <body>
     <div class="container">
 
-
+        <a href="index.html">&larr; Back to Dashboard</a>
         <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #ddd;">
 
         <div class="dashboard">
@@ -65,15 +65,8 @@
                     <option value="all">All Accounts</option>
                     <!-- Options populated by JS -->
                 </select>
-                <div id="balanceDisplay"
-                    style="margin-top: 1rem; font-weight: bold; font-size: 1.2rem; color: #28a745;">
-                    Closing Balance: --
-                </div>
-                <div style="margin-top: 0.5rem;">
-                    <a href="breakup.html" style="color: #007bff; text-decoration: none; margin-right: 15px;">View 15%
-                        Fund Breakup</a>
-                    <a href="reports.html" style="color: #007bff; text-decoration: none;">View Summary Report</a>
-                </div>
+
+
             </div>
 
             <table id="txTable" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
@@ -101,16 +94,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM Loaded, checking for data...');
 
-            if (!window.db) {
-                console.error('window.db is undefined!');
-                document.getElementById('balanceDisplay').innerText = 'Error: Data not loaded. Run npm run generate.';
-                return;
-            }
 
             const { accounts, transactions } = window.db;
             const accountSelect = document.getElementById('accountSelect');
             const txTableBody = document.querySelector('#txTable tbody');
-            const balanceDisplay = document.getElementById('balanceDisplay');
 
             // Create Account Lookup Map
             const accountMap = {};
