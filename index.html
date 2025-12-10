@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
             background-color: #f0f2f5;
             color: #333;
         }
+
         .container {
             background: white;
             padding: 2rem;
@@ -22,10 +24,12 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
+
         h1 {
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
         }
+
         p {
             font-size: 1.25rem;
             font-weight: bold;
@@ -33,10 +37,28 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Parag Parikh Arbitrage fund</h1>
         <p>5% return</p>
+        <div class="personal-details">
+            <h2>Personal Details</h2>
+            <p>Name: Manjesh</p>
+            <p>Date of birth: 05 Feb 1989</p>
+            <p>Age: <span id="age"></span></p>
+        </div>
     </div>
+    <script>
+        function calculateAge(dob) {
+            const diff_ms = Date.now() - dob.getTime();
+            const age_dt = new Date(diff_ms);
+            return Math.abs(age_dt.getUTCFullYear() - 1970);
+        }
+
+        const dob = new Date('1989-02-05');
+        document.getElementById('age').innerText = calculateAge(dob);
+    </script>
 </body>
+
 </html>

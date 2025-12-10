@@ -11,6 +11,10 @@ Create a simple web page to display specific investment return information.
 The page must display the following text clearly:
 - **Fund Name**: "Parag Parikh Arbitrage fund"
 - **Return Value**: "5% return"
+- **Personal Details**:
+    - **Name**: "Manjesh"
+    - **Date of Birth**: "05 Feb 1989"
+    - **Age**: Dynamically calculated based on DOB
 
 ### 3. Technical Requirements
 - **Format**: HTML5
